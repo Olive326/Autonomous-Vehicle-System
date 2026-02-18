@@ -58,7 +58,7 @@ Android App ──(Bluetooth)──> HC05 ──> STM32F446RE ──> TB6612 ─
 ### Bluetooth Control 
 *Manual control demonstration*
 
-video insert
+-[Google Drive](https://drive.google.com/file/d/1X2vIEITzeRsUi9aAgjjDEpIKbF9JVhJ4/view?usp=drive_link)
 
 ### Obstacle Avoidance
 
