@@ -58,8 +58,8 @@ Android App ──(Bluetooth)──> HC05 ──> STM32F446RE ──> TB6612 ─
 ### Bluetooth Control 
 *Manual control demonstration*
 
-<img src="https://github.com/user-attachments/assets/1e3fd09e-fa50-47ac-ac98-487bd05537cd" width="400">
-![left-turn](https://github.com/user-attachments/assets/87320189-cdb9-435e-8e5e-a9c87a9e2041)
+<img src="https://github.com/user-attachments/assets/1e3fd09e-fa50-47ac-ac98-487bd05537cd" width="450">
+<img src="https://github.com/user-attachments/assets/87320189-cdb9-435e-8e5e-a9c87a9e2041" width="450")
 
 - [Google Drive](https://drive.google.com/file/d/1X2vIEITzeRsUi9aAgjjDEpIKbF9JVhJ4/view?usp=drive_link)
 
