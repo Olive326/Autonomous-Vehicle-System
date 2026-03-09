@@ -92,6 +92,8 @@ extern uint32_t Difference;
 uint16_t Distance = 0;
 extern uint8_t Is_First_Captured;
 extern void Obstacle_Avoiding(void);
+extern void look_forward(void);
+extern void OLED_ShowDistance(uint16_t dist);
 
 /* USER CODE END PFP */
 
@@ -147,15 +149,9 @@ int main(void)
   printf("Timer running at 1 MHz (1 us resolution)\r\n\r\n");
   char msg[] = "UART Test 123\r\n";
   HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY); //sends data out through UART
-
-  HAL_Delay(1000);
-
-
   ssd1306_Init();
-  ssd1306_Fill(Black);
+  HAL_Delay(300);
 
-  ssd1306_UpdateScreen();
-  HAL_Delay(1000);
 
   /* USER CODE END 2 */
 
@@ -164,31 +160,16 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HC_SR04_Read();
-	  HAL_Delay(100);
 
-	  char buf[16];//ssd_writestring only accept string
-	  sprintf(buf, "%u cm", Distance);// converts a number into a string: 25 cm
-
-	  ssd1306_Fill(Black);
-	  ssd1306_SetCursor(2,0);
-	  ssd1306_WriteString("HC-SR04 Sensor", Font_7x10, White);
-	  ssd1306_SetCursor(2,20);
-	  ssd1306_WriteString("Dist:", Font_11x18, White);
-	  ssd1306_SetCursor(62, 20);
-	  ssd1306_WriteString(buf, Font_11x18, White);
-	  ssd1306_SetCursor(2, 50);
-	  ssd1306_WriteString("Status: OK", Font_6x8, White);
-	  ssd1306_UpdateScreen();
-
-	  Obstacle_Avoiding();
-	  HAL_Delay(100);
-
+      look_forward();
+      HC_SR04_Read();
+      HAL_Delay(60);
+      OLED_ShowDistance(Distance);
+      Obstacle_Avoiding();
+      HAL_Delay(100);
+	//  Motor_Backward();
 
     /* USER CODE BEGIN 3 */
-
-
-
 	}
   /* USER CODE END 3 */
 }

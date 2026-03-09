@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "servo.h"
 #include "motor.h"
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
 
 extern TIM_HandleTypeDef htim1;
 extern uint16_t Distance ;
@@ -12,6 +14,12 @@ extern void Motor_Forward(void);
 extern void Motor_Backward(void);
 extern void Motor_Left_Turn(uint16_t ms);
 extern void Motor_Right_Turn(uint16_t ms);
+extern void CounterClockwise_Rotation(void);
+extern void ssd1306_Fill(SSD1306_COLOR color);
+extern void ssd1306_SetCursor(uint8_t x, uint8_t y);
+extern char ssd1306_WriteString(char* str, SSD1306_Font_t Font, SSD1306_COLOR color);
+extern void ssd1306_UpdateScreen(void);
+
 
 
 
@@ -64,10 +72,17 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 				Difference = (65535 - IC_Val1) + IC_Val2;
 			}
 
+		  // To avoid overflow/missing edge !!
+		  if (Difference >25000 || Difference < 58)
+		  {
+			  Distance = 0;
+		  }
+		  else
+		  {
+			  Distance = (Difference * 343)/20000; //in cm
+		  }
 
-		  Distance = (Difference * 343)/20000; //in cm
 		  Is_First_Captured = 0;
-
             //set polarity to rising edge
 		  __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
 		  __HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC1); //disable tim1 capture compare interrupt
@@ -84,50 +99,74 @@ void HC_SR04_Read (void)
 	HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_SET);
 	delay_us(10);
 	HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_RESET);
+}
 
+void OLED_ShowDistance(uint16_t dist)
+{
+	char buf[16];
+	sprintf(buf, "%u cm", dist);
+	ssd1306_Fill(Black);
+	ssd1306_SetCursor(2, 20);
+	ssd1306_WriteString("Dist:", Font_11x18, White);
+	ssd1306_SetCursor(62,20);
+	ssd1306_WriteString(buf, Font_11x18, White);
+
+	ssd1306_UpdateScreen();
 }
 
 void Obstacle_Avoiding (void)
 {
 	uint16_t front_dist, left_dist, right_dist;
+	Motor_Forward();
+	HAL_Delay(60);
+	HC_SR04_Read();
+	HAL_Delay(150);
+	front_dist = Distance;
+	if (front_dist >35 && front_dist!=0)
+	{
+		Motor_Forward();
+		HAL_Delay(200);
+		return;
+	}
+	Motor_Stop();
+
+	right_turn();
+	HAL_Delay(300);
+	HC_SR04_Read();
+	HAL_Delay(60);
+	right_dist = Distance;
+
+	left_turn();
+	HAL_Delay(300);
+	HC_SR04_Read();
+	HAL_Delay(60);
+	left_dist = Distance;
 
 	look_forward();
-	HAL_Delay(500);
-	HC_SR04_Read();
-	front_dist = Distance;
+	HAL_Delay(200);
 
-	if (front_dist >20){
+	if(right_dist > left_dist && right_dist > 25)
+	{
+		Motor_Right_Turn(600);
 		Motor_Forward();
+		HAL_Delay(200);
+		return;
+	}
+	else if(left_dist > right_dist && left_dist > 25)
+	{
+		Motor_Left_Turn(600);
+		Motor_Forward();
+		HAL_Delay(200);
 		return;
 	}
 
-	Motor_Stop();
 
-	left_turn();
-	HAL_Delay(500);
-	HC_SR04_Read();
-	left_dist = Distance;
-	HAL_Delay(100);
-
-	right_turn();
-	HAL_Delay(500);
-	HC_SR04_Read();
-	right_dist = Distance;
-	HAL_Delay(100);
-
-	if ( left_dist > right_dist && left_dist >= 20)
+    else
 	{
-		Motor_Left_Turn(500);
-	}
-	else if(right_dist > left_dist && right_dist >= 20)
-	{
-		Motor_Right_Turn(500);
-	}
-	else
-	{
-		Motor_Backward();
-		HAL_Delay(800);
+	    CounterClockwise_Rotation();
+		HAL_Delay(600);
 		Motor_Stop();
-	}
+		return;
+     }
 
 }
